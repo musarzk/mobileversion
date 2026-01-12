@@ -1,0 +1,2 @@
+﻿server/routes/auth.ts(63,56): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+server/routes/auth.ts(114,56): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.

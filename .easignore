@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+.expo/
+.expo-shared/
+dist/
+build/
+
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (keep .env for builds if needed)
+# .env.local
+# .env.development
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation
+*.md
+docs/
+
+# Debug/development files
+debug-properties.ts
+debug-properties.js
+test-db.ts
+test-db.js
+
+# Server directory (not needed for mobile build)
+server/
+
+# Lock files (EAS generates its own)
+package-lock.json
+yarn.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE
+*.swp
+*.swo
+*~

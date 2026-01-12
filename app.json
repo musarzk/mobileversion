@@ -1,30 +1,38 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Dwellas Mobile",
+    "slug": "dwellas-mobile",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.dwellas.mobile",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.dwellas.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "cli": {
+      "appVersionSource": "local"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "297b7a7c-8afd-4c8c-92cb-2f85cd2fa21a"
+      }
     }
   }
 }
