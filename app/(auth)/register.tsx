@@ -10,8 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../constants/theme';
 import AuthHeader from '../../components/auth/AuthHeader';
 import Input from '../../components/ui/Input';
