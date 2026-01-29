@@ -20,6 +20,7 @@ import { useRef } from 'react';
 import api from '../../services/api';
 import { Property } from '../../types';
 import ImageGalleryModal from '../../components/properties/ImageGalleryModal';
+import { formatPrice } from '../../utils/formatCurrency';
 
 const { width } = Dimensions.get('window');
 
@@ -190,16 +191,24 @@ export default function PropertyDetailsScreen() {
           paddingBottom: Math.max(20, insets.bottom) // Ensure bottom padding doesn't go below 20
         }]}>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>${property.price.toLocaleString()}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+              <Text style={styles.price}>₦{formatPrice(property.price)}</Text>
+              {property.priceUsd && (
+                <Text style={styles.priceUsd}> / ${formatPrice(property.priceUsd)}</Text>
+              )}
+            </View>
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>{property.status.toUpperCase()}</Text>
             </View>
           </View>
 
           <Text style={styles.title}>{property.title}</Text>
-          <Text style={styles.location}>
-            <Ionicons name="location" size={16} color="#6B7280" /> {property.address}
-          </Text>
+          <View style={styles.locationContainer}>
+            <Ionicons name="location" size={16} color="#6B7280" />
+            <Text style={styles.locationText}>
+              {property.address ? `${property.address}, ` : ''}{property.location}
+            </Text>
+          </View>
 
           {/* Specs */}
           <View style={styles.specs}>
@@ -420,6 +429,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#0096DC',
   },
+  priceUsd: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
   statusBadge: {
     backgroundColor: '#DBEAFE',
     paddingHorizontal: 12,
@@ -441,6 +455,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     marginBottom: 20,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 4,
+  },
+  locationText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
   specs: {
     flexDirection: 'row',

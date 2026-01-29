@@ -12,19 +12,64 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 10, listingType, propertyType, minPrice, maxPrice, location } = req.query;
+    console.log('🔍 DEBUG: Server received query params:', JSON.stringify(req.query, null, 2));
+
     const properties = await getCollection('properties');
 
+    // Start with status filter
     const query: any = {
-      status: 'approved' // Only show approved properties (matching web app)
+      status: { $in: ['approved', 'active'] }
     };
-    if (listingType) query.listingType = listingType;
-    if (propertyType) query.propertyType = propertyType;
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = parseInt(minPrice as string);
-      if (maxPrice) query.price.$lte = parseInt(maxPrice as string);
+
+    // We will build an array of conditions to AND together
+    const andConditions: any[] = [];
+
+    // 1. Listing Type
+    if (listingType) {
+      andConditions.push({ listingType: { $regex: listingType as string, $options: 'i' } });
     }
-    if (location) query.location = { $regex: location as string, $options: 'i' };
+
+    // 2. Property Type (check 'type' OR 'propertyType')
+    if (propertyType) {
+      andConditions.push({
+        $or: [
+          { propertyType: { $regex: propertyType as string, $options: 'i' } },
+          { type: { $regex: propertyType as string, $options: 'i' } }
+        ]
+      });
+    }
+
+    // 3. Location
+    if (location) {
+      andConditions.push({ location: { $regex: location as string, $options: 'i' } });
+    }
+
+    // 4. Price
+    if (minPrice || maxPrice) {
+      const priceQuery: any = {};
+      if (minPrice) priceQuery.$gte = parseInt(minPrice as string);
+      if (maxPrice) priceQuery.$lte = parseInt(maxPrice as string);
+      query.price = priceQuery;
+    }
+
+    // 5. Beds (Schema: 'beds')
+    if (req.query.beds) {
+      const val = parseInt(req.query.beds as string);
+      andConditions.push({ beds: { $gte: val } });
+    }
+
+    // 6. Baths (Schema: 'baths')
+    if (req.query.baths) {
+      const val = parseInt(req.query.baths as string);
+      andConditions.push({ baths: { $gte: val } });
+    }
+
+    // Combine all conditions
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
+    }
+
+    console.log('🔍 DEBUG: Final MongoDB Query:', JSON.stringify(query, null, 2));
 
     const skip = (Number(page) - 1) * Number(limit);
     const results = await properties.find(query)
@@ -48,8 +93,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const properties = await getCollection('properties');
-    const id = typeof req.params.id === 'string' ? req.params.id : req.params.id[0];
-    const property = await properties.findOne({ _id: new ObjectId(id) });
+    const property = await properties.findOne({ _id: new ObjectId(req.params.id) });
     if (!property) {
       return res.status(404).json({ error: 'Property not found' });
     }
@@ -123,10 +167,9 @@ router.put('/approval/:id', authenticate, async (req: AuthRequest, res) => {
   try {
     const properties = await getCollection('properties');
     const { verified } = req.body;
-    const id = typeof req.params.id === 'string' ? req.params.id : req.params.id[0];
 
     await properties.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(req.params.id) },
       { $set: { verified, updatedAt: new Date() } }
     );
 

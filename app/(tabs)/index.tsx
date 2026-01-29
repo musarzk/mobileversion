@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { useProperties } from '../../hooks/useProperties';
@@ -11,12 +10,16 @@ import BestForYouCard from '../../components/home/BestForYouCard';
 import { COLORS } from '../../constants/theme';
 import HomeHeader from '../../components/home/HomeHeader';
 import SectionHeader from '../../components/ui/SectionHeader';
+import SearchHeader from '../../components/search/SearchHeader';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { user } = useAuth();
-  const { properties, loading, refresh } = useProperties({ limit: 10 });
-  const [selectedCategory, setSelectedCategory] = useState('House');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const { properties, loading, refresh } = useProperties({
+    limit: 10,
+    category: selectedCategory === 'All' ? '' : selectedCategory
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const handlePropertyPress = (propertyId: string) => {
@@ -24,15 +27,10 @@ export default function HomeScreen() {
     navigation.navigate('PropertyDetails', { id: propertyId });
   };
 
-  // Mock filtering for "Near You" vs "Best For You"
-  // In a real app, this would be API driven
-  // "Near You" -> Featured: Verified properties, sorted by newest
   const nearYouProperties = React.useMemo(() => {
     let result = [...properties];
-    // Prioritize verified
     result.sort((a, b) => {
       if (a.verified === b.verified) {
-        // If verify status is same, sort by newest
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       return a.verified ? -1 : 1;
@@ -40,20 +38,13 @@ export default function HomeScreen() {
     return result.slice(0, 5);
   }, [properties]);
 
-  // "Best For You" -> Recommendation: Remaining properties, sorted by lowest price
   const bestForYouProperties = React.useMemo(() => {
-    // Get properties NOT in the top "Featured" list to vary content
     const featuredIds = new Set(nearYouProperties.map(p => p._id));
     let result = properties.filter(p => !featuredIds.has(p._id));
-
-    // If we have too few remaining, just use all properties to ensure this section isn't empty
     if (result.length < 2) {
       result = [...properties];
     }
-    
-    // Sort by price (Low -> High) simulating "Best Deals"
     result.sort((a, b) => a.price - b.price);
-    
     return result.slice(0, 5);
   }, [properties, nearYouProperties]);
 
@@ -65,71 +56,76 @@ export default function HomeScreen() {
           <Text style={styles.loadingText}>Loading properties...</Text>
         </View>
       ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <HomeHeader />
+        <View style={{ flex: 1 }}>
+          {/* Sticky Header Section */}
+          <View style={styles.headerContainer}>
+            <HomeHeader greeting={`Welcome, ${user?.name || 'Friend'}`} />
 
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Ionicons name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search something"
-                placeholderTextColor={COLORS.textMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
+            <SearchHeader
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onClearSearch={() => setSearchQuery('')}
+              onFilterPress={() => {
+                // @ts-ignore
+                navigation.navigate('Search');
+              }}
+              activeFilterCount={0}
+            />
+
+            {/* Categories (Moved here to be sticky as well) */}
+            <View style={{ marginTop: 5 }}>
+              <CategoryList
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
               />
-              <Ionicons name="options-outline" size={20} color={COLORS.textMuted} />
             </View>
           </View>
 
-          {/* Categories */}
-          <CategoryList
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
-
-          {/* Featured Section */}
-          <SectionHeader 
-            title="Featured" 
-            onAction={() => {}} 
-          />
-          
           <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={loading} onRefresh={refresh} />
+            }
           >
-            {nearYouProperties.map((property) => (
-              <NearYouCard
-                key={property._id}
-                property={property}
-                onPress={() => handlePropertyPress(property._id)}
-              />
-            ))}
+            {/* Featured Section */}
+            <SectionHeader
+              title="Featured"
+              onAction={() => { }}
+            />
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            >
+              {nearYouProperties.map((property) => (
+                <NearYouCard
+                  key={property._id}
+                  property={property}
+                  onPress={() => handlePropertyPress(property._id)}
+                />
+              ))}
+            </ScrollView>
+
+            {/* Our Recommendation Section */}
+            <SectionHeader
+              title="Our Recommendation"
+              onAction={() => { }}
+            />
+
+            <View style={styles.verticalList}>
+              {bestForYouProperties.map((property) => (
+                <BestForYouCard
+                  key={property._id}
+                  property={property}
+                  onPress={() => handlePropertyPress(property._id)}
+                />
+              ))}
+            </View>
+
+            <View style={{ height: 20 }} />
           </ScrollView>
-
-          {/* Our Recommendation Section */}
-          <SectionHeader 
-            title="Our Recommendation" 
-            onAction={() => {}} 
-          />
-
-          <View style={styles.verticalList}>
-            {bestForYouProperties.map((property) => (
-              <BestForYouCard
-                key={property._id}
-                property={property}
-                onPress={() => handlePropertyPress(property._id)}
-              />
-            ))}
-          </View>
-
-          <View style={{ height: 20 }} />
-        </ScrollView>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -139,6 +135,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  headerContainer: {
+    backgroundColor: COLORS.background,
+    paddingBottom: 10,
+    zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    // Slight shadow for separation
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 4,
   },
   loadingContainer: {
     flex: 1,
@@ -151,31 +160,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textMuted,
   },
-
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    gap: 12,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F7F8FA', // Lighter background for search
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.text,
-  },
-
   horizontalList: {
     paddingHorizontal: 20,
   },
@@ -185,4 +169,3 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
 });
-

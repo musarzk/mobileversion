@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +24,22 @@ const Tab = createBottomTabNavigator();
 // Dummy component for tabs that handle their own navigation via listeners
 const PlaceholderComponent = () => null;
 
+// Custom TabIcon component with active border effect
+const TabIcon = ({ name, color, focused }: { name: any; color: string; focused: boolean }) => {
+  return (
+    <View style={{
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderBottomWidth: focused ? 3 : 0,
+      borderBottomColor: COLORS.primary,
+      paddingBottom: 5,
+      width: 50,
+    }}>
+      <Ionicons name={name} size={24} color={color} />
+    </View>
+  );
+};
+
 export default function TabLayout() {
   const { canCreateListing, canAccessAdmin, canViewInvestments } = useRoleAccess();
   const { user } = useAuth();
@@ -40,13 +57,9 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: 60 + (insets.bottom || 10),
+          height: 70 + (insets.bottom || 10), // Increased height for better spacing
           paddingBottom: insets.bottom || 10,
           paddingTop: 10,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 15,
           elevation: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -3 },
@@ -56,13 +69,7 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
-        },
-        tabBarIconStyle: {
-          marginBottom: 0,
-        },
-        tabBarItemStyle: {
-          alignItems: 'center',
-          justifyContent: 'center',
+          marginTop: 4,
         },
       }}
     >
@@ -72,8 +79,20 @@ export default function TabLayout() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={Number(size)} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="home" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Search Tab */}
+      <Tab.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{
+          tabBarLabel: 'Search',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="search" color={color} focused={focused} />
           ),
         }}
       />
@@ -84,8 +103,8 @@ export default function TabLayout() {
         component={InvestorPortalScreen}
         options={{
           tabBarLabel: 'Investors',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={Number(size)} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="trending-up" color={color} focused={focused} />
           ),
         }}
       />
@@ -96,8 +115,8 @@ export default function TabLayout() {
         component={ContactScreen}
         options={{
           tabBarLabel: 'Contact',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="mail" size={Number(size)} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="mail" color={color} focused={focused} />
           ),
         }}
       />
@@ -109,8 +128,8 @@ export default function TabLayout() {
           component={PlaceholderComponent}
           options={{
             tabBarLabel: 'Sign In',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="log-in" size={Number(size)} color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="log-in" color={color} focused={focused} />
             ),
           }}
           listeners={{
@@ -128,8 +147,8 @@ export default function TabLayout() {
         component={canCreateListing ? MyListingsScreen : PlaceholderComponent}
         options={{
           tabBarLabel: 'List Property',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={Number(size)} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="add-circle" color={color} focused={focused} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -145,18 +164,15 @@ export default function TabLayout() {
         })}
       />
 
-      {/* Hidden Tabs (accessible via other means or conditional) */}
-
-
-
       {/* Saved - Visible only if logged in */}
       {user && (
         <Tab.Screen
           name="Saved"
           component={SavedScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="heart" size={Number(size)} color={color} />
+            tabBarLabel: 'Saved',
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="heart" color={color} focused={focused} />
             ),
           }}
         />
@@ -168,8 +184,9 @@ export default function TabLayout() {
           name="Admin"
           component={AdminScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="shield" size={Number(size)} color={color} />
+            tabBarLabel: 'Admin',
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="shield" color={color} focused={focused} />
             ),
           }}
         />
@@ -181,14 +198,13 @@ export default function TabLayout() {
           name="Profile"
           component={ProfileScreen}
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={Number(size)} color={color} />
+            tabBarLabel: 'Profile',
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="person" color={color} focused={focused} />
             ),
           }}
         />
       )}
-
-      {/* Search Screen - removed to fix ghost space in tab bar */}
     </Tab.Navigator>
   );
 }

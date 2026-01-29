@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  TextInput,
+  Modal, View, Text, StyleSheet, ScrollView,
+  TextInput, TouchableOpacity, KeyboardAvoidingView,
+  Platform, TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+/** * 1. EXPORT THE INTERFACE
+ * This allows SearchScreen to import { FilterOptions }
+ */
+export interface FilterOptions {
+  listingType?: 'sale' | 'rent';
+  propertyType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  beds?: number;
+  baths?: number;
+}
 
 interface FilterModalProps {
   visible: boolean;
@@ -17,215 +27,174 @@ interface FilterModalProps {
   initialFilters?: FilterOptions;
 }
 
-export interface FilterOptions {
-  listingType?: 'sale' | 'rent' | '';
-  propertyType?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-}
-
 export default function FilterModal({
   visible,
   onClose,
   onApply,
-  initialFilters = {},
+  initialFilters = {}
 }: FilterModalProps) {
   const [filters, setFilters] = useState<FilterOptions>(initialFilters);
 
-  const handleApply = () => {
-    onApply(filters);
-    onClose();
-  };
+  // Sync state when modal opens
+  useEffect(() => {
+    if (visible) setFilters(initialFilters);
+  }, [visible, initialFilters]);
 
-  const handleClear = () => {
-    setFilters({});
-    onApply({});
-    onClose();
+  const handlePriceChange = (key: 'minPrice' | 'maxPrice', value: string) => {
+    const num = value === '' ? undefined : Number(value.replace(/[^0-9]/g, ''));
+    setFilters({ ...filters, [key]: num });
   };
 
   return (
-    <Modal 
-      visible={visible === true} 
-      animationType="slide" 
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#111827" />
-            </TouchableOpacity>
-            <Text style={styles.title}>Filters</Text>
-            <TouchableOpacity onPress={handleClear}>
-              <Text style={styles.clearText}>Clear</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.content}>
-            {/* Listing Type */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Listing Type</Text>
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  style={[
-                    styles.filterButton,
-                    filters.listingType === 'sale' ? styles.filterButtonActive : {},
-                  ]}
-                  onPress={() => setFilters({ ...filters, listingType: 'sale' })}
-                >
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      filters.listingType === 'sale' ? styles.filterButtonTextActive : {},
-                    ]}
-                  >
-                    For Sale
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.filterButton,
-                    filters.listingType === 'rent' ? styles.filterButtonActive : {},
-                  ]}
-                  onPress={() => setFilters({ ...filters, listingType: 'rent' })}
-                >
-                  <Text
-                    style={[
-                      styles.filterButtonText,
-                      filters.listingType === 'rent' ? styles.filterButtonTextActive : {},
-                    ]}
-                  >
-                    For Rent
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Property Type */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Property Type</Text>
-              <View style={styles.buttonGroup}>
-                {['house', 'apartment', 'condo', 'townhouse'].map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.filterButton,
-                      filters.propertyType === type ? styles.filterButtonActive : {},
-                    ]}
-                    onPress={() => setFilters({ ...filters, propertyType: type })}
-                  >
-                    <Text
-                      style={[
-                        styles.filterButtonText,
-                        filters.propertyType === type ? styles.filterButtonTextActive : {},
-                      ]}
-                    >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Text>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ width: '100%' }}
+          >
+            {/* inner TouchableWithoutFeedback prevents clicks on the sheet from closing the modal */}
+            <TouchableWithoutFeedback>
+              <View style={styles.sheet}>
+                {/* HEADER */}
+                <View style={styles.header}>
+                  <TouchableOpacity onPress={onClose} hitSlop={10}>
+                    <Ionicons name="close" size={24} color="#374151" />
                   </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Price Range */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Price Range</Text>
-              <View style={styles.priceInputs}>
-                <View style={styles.priceInput}>
-                  <Text style={styles.inputLabel}>Min Price</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="$0"
-                    keyboardType="numeric"
-                    value={filters.minPrice?.toString() || ''}
-                    onChangeText={(text) => {
-                      const num = parseInt(text);
-                      setFilters({ ...filters, minPrice: isNaN(num) ? undefined : num });
-                    }}
-                  />
+                  <Text style={styles.title}>Filters</Text>
+                  <TouchableOpacity onPress={() => setFilters({})}>
+                    <Text style={styles.reset}>Reset</Text>
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.priceSeparator}>-</Text>
-                <View style={styles.priceInput}>
-                  <Text style={styles.inputLabel}>Max Price</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Any"
-                    keyboardType="numeric"
-                    value={filters.maxPrice?.toString() || ''}
-                    onChangeText={(text) => {
-                      const num = parseInt(text);
-                      setFilters({ ...filters, maxPrice: isNaN(num) ? undefined : num });
-                    }}
-                  />
+
+                <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+                  {/* LISTING TYPE SECTION */}
+                  <View style={styles.section}>
+                    <Text style={styles.label}>Listing Type</Text>
+                    <View style={styles.row}>
+                      {['sale', 'rent'].map((type) => (
+                        <TouchableOpacity
+                          key={type}
+                          onPress={() => setFilters({
+                            ...filters,
+                            listingType: filters.listingType === type ? undefined : type as any
+                          })}
+                          style={[
+                            styles.chip,
+                            filters.listingType === type && styles.activeChip
+                          ]}
+                        >
+                          <Text style={[
+                            styles.chipText,
+                            filters.listingType === type && styles.activeChipText
+                          ]}>
+                            For {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* PRICE RANGE SECTION */}
+                  <View style={styles.section}>
+                    <Text style={styles.label}>Price Range</Text>
+                    <View style={styles.row}>
+                      <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Min</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="₦ 0"
+                          keyboardType="numeric"
+                          value={filters.minPrice?.toString() || ''}
+                          onChangeText={(v) => handlePriceChange('minPrice', v)}
+                        />
+                      </View>
+                      <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Max</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="₦ Any"
+                          keyboardType="numeric"
+                          value={filters.maxPrice?.toString() || ''}
+                          onChangeText={(v) => handlePriceChange('maxPrice', v)}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* BEDS & BATHS SECTION */}
+                  <View style={styles.section}>
+                    <Text style={styles.label}>Rooms</Text>
+                    <View style={{ gap: 16 }}>
+                      <View>
+                        <Text style={styles.subLabel}>Bedrooms</Text>
+                        <View style={styles.row}>
+                          {[1, 2, 3, 4, '5+'].map((count) => {
+                            const value = count === '5+' ? 5 : count as number;
+                            return (
+                              <TouchableOpacity
+                                key={count}
+                                onPress={() => setFilters({ ...filters, beds: filters.beds === value ? undefined : value })}
+                                style={[
+                                  styles.miniChip,
+                                  filters.beds === value && styles.activeChip
+                                ]}
+                              >
+                                <Text style={[
+                                  styles.miniChipText,
+                                  filters.beds === value && styles.activeChipText
+                                ]}>
+                                  {count}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+
+                      <View>
+                        <Text style={styles.subLabel}>Bathrooms</Text>
+                        <View style={styles.row}>
+                          {[1, 2, 3, 4, '5+'].map((count) => {
+                            const value = count === '5+' ? 5 : count as number;
+                            return (
+                              <TouchableOpacity
+                                key={count}
+                                onPress={() => setFilters({ ...filters, baths: filters.baths === value ? undefined : value })}
+                                style={[
+                                  styles.miniChip,
+                                  filters.baths === value && styles.activeChip
+                                ]}
+                              >
+                                <Text style={[
+                                  styles.miniChipText,
+                                  filters.baths === value && styles.activeChipText
+                                ]}>
+                                  {count}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </ScrollView>
+
+                {/* APPLY BUTTON */}
+                <View style={styles.footer}>
+                  <TouchableOpacity
+                    style={styles.apply}
+                    onPress={() => { onApply(filters); onClose(); }}
+                  >
+                    <Text style={styles.applyText}>Apply Filters</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
-
-            {/* Bedrooms */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Bedrooms</Text>
-              <View style={styles.buttonGroup}>
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <TouchableOpacity
-                    key={num}
-                    style={[
-                      styles.numberButton,
-                      filters.bedrooms === num ? styles.filterButtonActive : {},
-                    ]}
-                    onPress={() => setFilters({ ...filters, bedrooms: num })}
-                  >
-                    <Text
-                      style={[
-                        styles.filterButtonText,
-                        filters.bedrooms === num ? styles.filterButtonTextActive : {},
-                      ]}
-                    >
-                      {num}+
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Bathrooms */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Bathrooms</Text>
-              <View style={styles.buttonGroup}>
-                {[1, 2, 3, 4].map((num) => (
-                  <TouchableOpacity
-                    key={num}
-                    style={[
-                      styles.numberButton,
-                      filters.bathrooms === num ? styles.filterButtonActive : {},
-                    ]}
-                    onPress={() => setFilters({ ...filters, bathrooms: num })}
-                  >
-                    <Text
-                      style={[
-                        styles.filterButtonText,
-                        filters.bathrooms === num ? styles.filterButtonTextActive : {},
-                      ]}
-                    >
-                      {num}+
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </ScrollView>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
-            </TouchableOpacity>
-          </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -233,14 +202,14 @@ export default function FilterModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end'
   },
-  container: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
+  sheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%'
   },
   header: {
     flexDirection: 'row',
@@ -248,105 +217,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderColor: '#F3F4F6'
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  clearText: {
-    fontSize: 16,
-    color: '#0096DC',
-    fontWeight: '600',
-  },
-  content: {
+  title: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  reset: { color: '#0096DC', fontWeight: '600' },
+  body: {
     padding: 20,
   },
-  section: {
-    marginBottom: 24,
+  section: { marginBottom: 24 },
+  label: { fontSize: 16, fontWeight: '700', marginBottom: 16, color: '#111827' },
+  subLabel: { fontSize: 14, fontWeight: '500', marginBottom: 8, color: '#6B7280' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chip: {
+    flex: 1,
+    minWidth: '45%',
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  filterButton: {
+  miniChip: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    minWidth: 50,
   },
-  filterButtonActive: {
+  activeChip: {
     backgroundColor: '#0096DC',
     borderColor: '#0096DC',
   },
-  filterButtonText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  filterButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  numberButton: {
-    width: 60,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-  },
-  priceInputs: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-  },
-  priceInput: {
+  chipText: { color: '#4B5563', fontWeight: '500' },
+  miniChipText: { color: '#4B5563', fontWeight: '500', fontSize: 14 },
+  activeChipText: { color: '#FFFFFF', fontWeight: '600' },
+  inputContainer: {
     flex: 1,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: 4,
+    marginLeft: 2,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
-    color: '#111827',
-  },
-  priceSeparator: {
-    fontSize: 18,
-    color: '#6B7280',
-    marginBottom: 10,
+    backgroundColor: '#F9FAFB',
+    color: '#111827'
   },
   footer: {
     padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: '#F3F4F6',
   },
-  applyButton: {
+  apply: {
     backgroundColor: '#0096DC',
-    paddingVertical: 16,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
   },
-  applyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  applyText: { color: '#fff', fontWeight: '700', fontSize: 16 }
 });

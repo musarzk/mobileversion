@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { fetchInvestorProperties } from '../../services/api';
+import { formatPrice } from '../../utils/formatCurrency';
 
 // Theme Colors
 import { COLORS } from '../../constants/theme';
@@ -99,18 +100,24 @@ export default function InvestorPortalScreen() {
                 <View style={styles.locationRow}>
                     <Ionicons name="location-outline" size={14} color={COLORS.textMuted} />
                     <Text style={styles.propertyAddress} numberOfLines={1}>
-                        {item.address}, {item.city}
+                        {item.address ? `${item.address}, ` : ''}{item.location || item.city}
                     </Text>
                 </View>
 
                 <View style={styles.metricsGrid}>
                     <View style={styles.metricItem}>
                         <Text style={styles.metricLabel}>Total Value</Text>
-                        <Text style={styles.metricValue}>${(item.price / 1000).toFixed(0)}k</Text>
+                        <Text style={styles.metricValue}>
+                            ₦{formatPrice(item.price)}
+                            {item.priceUsd ? ` / $${formatPrice(item.priceUsd)}` : ` / $${formatPrice(item.price / 1600)}`}
+                        </Text>
                     </View>
                     <View style={styles.metricItem}>
                         <Text style={styles.metricLabel}>Min. Invest</Text>
-                        <Text style={styles.metricValue}>${(item.minInvestment / 1000).toFixed(1)}k</Text>
+                        <Text style={styles.metricValue}>
+                            ₦{formatPrice(item.minInvestment)}
+                            {item.minInvestmentUsd ? ` / $${formatPrice(item.minInvestmentUsd)}` : ` / $${formatPrice(item.minInvestment / 1600)}`}
+                        </Text>
                     </View>
                     <View style={styles.metricItem}>
                         <Text style={styles.metricLabel}>Breakeven</Text>
@@ -143,8 +150,32 @@ export default function InvestorPortalScreen() {
                 )}
             </View>
 
-            <ScrollView 
-                showsVerticalScrollIndicator={false} 
+            {/* Filters (Sticky) */}
+            <View style={styles.stickyFilterContainer}>
+                <Text style={styles.sectionTitleSticky}>Investment Opportunities</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+                    {['All', 'Low', 'Moderate', 'High'].map((risk) => (
+                        <TouchableOpacity
+                            key={risk}
+                            style={[
+                                styles.filterChip,
+                                (risk === 'All' && !filterRisk) || risk === filterRisk ? styles.activeFilter : null
+                            ]}
+                            onPress={() => setFilterRisk(risk === 'All' ? null : risk)}
+                        >
+                            <Text style={[
+                                styles.filterText,
+                                (risk === 'All' && !filterRisk) || risk === filterRisk ? styles.activeFilterText : null
+                            ]}>
+                                {risk === 'All' ? 'All Risks' : `${risk} Risk`}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
                 {/* Stats Section */}
@@ -152,30 +183,6 @@ export default function InvestorPortalScreen() {
                     {renderStatCard('Avg. ROI', '12.5%', 'trending-up', COLORS.success)}
                     {renderStatCard('Active Deals', '24', 'briefcase', COLORS.primary)}
                     {renderStatCard('Investors', '1.2k', 'people', '#8B5CF6')}
-                </View>
-
-                {/* Filters */}
-                <View style={styles.filterContainer}>
-                    <Text style={styles.sectionTitle}>Investment Opportunities</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-                        {['All', 'Low', 'Moderate', 'High'].map((risk) => (
-                            <TouchableOpacity
-                                key={risk}
-                                style={[
-                                    styles.filterChip,
-                                    (risk === 'All' && !filterRisk) || risk === filterRisk ? styles.activeFilter : null
-                                ]}
-                                onPress={() => setFilterRisk(risk === 'All' ? null : risk)}
-                            >
-                                <Text style={[
-                                    styles.filterText,
-                                    (risk === 'All' && !filterRisk) || risk === filterRisk ? styles.activeFilterText : null
-                                ]}>
-                                    {risk === 'All' ? 'All Risks' : `${risk} Risk`}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
                 </View>
 
                 {/* Property List */}
@@ -213,11 +220,11 @@ export default function InvestorPortalScreen() {
                     <View style={styles.modalContent}>
                         <Ionicons name="lock-closed" size={48} color={COLORS.primary} />
                         <Text style={styles.modalTitle}>Authentication Required</Text>
-                         <Text style={styles.modalText}>
+                        <Text style={styles.modalText}>
                             You need to be logged in to start investing. Create an account or sign in to access exclusive opportunities.
                         </Text>
-                        <TouchableOpacity 
-                            style={styles.modalButton} 
+                        <TouchableOpacity
+                            style={styles.modalButton}
                             onPress={() => {
                                 setShowLoginPrompt(false);
                                 navigation.navigate('Login');
@@ -293,6 +300,27 @@ const styles = StyleSheet.create({
     statTitle: {
         fontSize: 12,
         color: COLORS.textMuted,
+    },
+    stickyFilterContainer: {
+        backgroundColor: COLORS.card,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+        paddingTop: 4,
+        zIndex: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+        // Elevation for elevation
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 4,
+    },
+    sectionTitleSticky: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.text,
+        marginBottom: 8,
     },
     filterContainer: {
         paddingHorizontal: 20,
@@ -427,7 +455,8 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     metricItem: {
-        width: '47%', // Approx 2 columns
+        width: '100%', // Full width for the first item if needed, or keeping it flexible
+        marginBottom: 8,
     },
     metricLabel: {
         fontSize: 11,

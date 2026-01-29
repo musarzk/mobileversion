@@ -38,7 +38,7 @@ export default function MessagesScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
       style={styles.messageItem}
-      onPress={() => router.push({ pathname: '/messages/[id]', params: { id: item.id, name: item.name } })}
+      onPress={() => (navigation as any).navigate('MessageDetails', { id: item.id, name: item.name })}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.messageContent}>
@@ -61,7 +61,7 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>

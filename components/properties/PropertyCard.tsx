@@ -60,7 +60,11 @@ export default function PropertyCard({ property, onPress }: PropertyCardProps) {
             <View style={styles.content}>
                 <View style={styles.priceContainer}>
                     <Text style={styles.price}>{formatCardPrice(property.price)}</Text>
-                    <Text style={styles.priceDollar}>~${utilFormatPrice(property.price / 1600)}</Text>
+                    {property.priceUsd ? (
+                        <Text style={styles.priceDollar}>/ ${utilFormatPrice(property.priceUsd)}</Text>
+                    ) : (
+                        <Text style={styles.priceDollar}>~${utilFormatPrice(property.price / 1600)}</Text>
+                    )}
                 </View>
                 <Text style={styles.title} numberOfLines={1}>
                     {property.title}
@@ -72,11 +76,11 @@ export default function PropertyCard({ property, onPress }: PropertyCardProps) {
                 {/* Property Specs */}
                 <View style={styles.specs}>
                     <View style={styles.spec}>
-                        <Text style={styles.specText}>{property.bedrooms} beds</Text>
+                        <Text style={styles.specText}>{property.beds} beds</Text>
                     </View>
                     <View style={styles.specDivider} />
                     <View style={styles.spec}>
-                        <Text style={styles.specText}>{property.bathrooms} baths</Text>
+                        <Text style={styles.specText}>{property.baths} baths</Text>
                     </View>
                     <View style={styles.specDivider} />
                     <View style={styles.spec}>

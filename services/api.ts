@@ -9,13 +9,13 @@ const getApiUrl = () => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  
+
   // Development: Local server
   // Default to localhost for development
   return 'http://192.168.100.2:5000/api';
 };
 
-const API_BASE_URL = getApiUrl();
+export const API_BASE_URL = getApiUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,9 +24,27 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Fix for Axios baseURL issue: 
+// If URL starts with / and baseURL ends without /, axios hits the root instead of appending.
 api.interceptors.request.use(
   async (config) => {
+    // Ensure URL has the /api prefix if it's missing and it's a relative path
+    if (config.url && !config.url.startsWith('/api') && !config.url.startsWith('http')) {
+      // If baseURL already ends with /api, we just need to handle the leading slash of the URL
+      const hasApiInBase = config.baseURL?.endsWith('/api') || config.baseURL?.endsWith('/api/');
+
+      if (!hasApiInBase) {
+        config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
+      } else {
+        // If /api is in base, just make sure we don't have a double slash or overwrite
+        // Axios handles 'host/api' + '/path' as 'host/path'
+        // So we strip the leading slash from the URL if base has /api
+        if (config.url.startsWith('/')) {
+          config.url = config.url.substring(1);
+        }
+      }
+    }
+
     const token = await SecureStore.getItemAsync('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

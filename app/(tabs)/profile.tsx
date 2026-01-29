@@ -13,9 +13,9 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
 
   const menuItems = [
-    { icon: 'chatbubbles-outline', label: 'Messages', route: '/messages' },
-    { icon: 'briefcase-outline', label: 'Create Portfolio', route: '/investor/create-portfolio' },
-    { icon: 'pie-chart-outline', label: 'Investment Plan', route: '/investor/investment-plan' },
+    { icon: 'chatbubbles-outline', label: 'Messages', route: 'Messages' }, // Placeholder
+    { icon: 'briefcase-outline', label: 'Create Portfolio', route: 'CreatePortfolio' },
+    { icon: 'pie-chart-outline', label: 'Investment Plan', route: 'InvestmentPlan' },
   ];
 
   return (
@@ -40,7 +40,13 @@ export default function ProfileScreen() {
               key={index}
               icon={item.icon as any} 
               label={item.label} 
-              onPress={() => router.push(item.route as any)} 
+              onPress={() => {
+                if (item.route === 'Messages') {
+                  alert('Messages feature coming soon');
+                } else {
+                  (navigation as any).navigate(item.route);
+                }
+              }} 
             />
           ))}
         </View>

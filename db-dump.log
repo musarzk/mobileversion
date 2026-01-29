@@ -1,0 +1,47 @@
+
+--- DISTINCT VALUES ---
+propertyType: []
+listingType: ["rent","sale"]
+
+--- SAMPLE DOCUMENT ---
+{
+  "_id": "6926c19d77f0a192c5e641a7",
+  "createdAt": "2025-11-26T09:00:09.907Z",
+  "updatedAt": "2025-11-29T22:27:22.638Z",
+  "title": "MODERN STOREY DUPLEX",
+  "description": "Welcome to your dream home in the heart of Asoko, Abuja! This stunning modern storey duplex is designed with elegance and comfort in mind, offering a perfect blend of style and functionality. Step inside to discover spacious living areas adorned with aesthetic amenities that create a warm and inviting atmosphere. The open-concept layout is perfect for entertaining guests or enjoying quiet family evenings.",
+  "price": 850000000,
+  "priceUsd": 595000,
+  "location": "TY Danjuma, Asokoro",
+  "beds": 5,
+  "baths": 5,
+  "sqft": 450,
+  "images": [
+    "https://res.cloudinary.com/dhol2jm7e/image/upload/v1764147613/dwelas/properties/g51itecdhl7q9gzwyadr.png",
+    "https://res.cloudinary.com/dhol2jm7e/image/upload/v1764147613/dwelas/properties/uibzna6qkrtza0c77tjg.png",
+    "https://res.cloudinary.com/dhol2jm7e/image/upload/v1764147613/dwelas/properties/avbyynqyobr9blfnpgqn.png",
+    "https://res.cloudinary.com/dhol2jm7e/image/upload/v1764147614/dwelas/properties/xxjzvrhkkobqzqwdr1o6.png",
+    "https://res.cloudinary.com/dhol2jm7e/image/upload/v1764147613/dwelas/properties/gjxuwidplzqkntfwwbyt.png"
+  ],
+  "amenities": [
+    "parking",
+    "pool",
+    "garden",
+    "gym",
+    "balcony"
+  ],
+  "contact": {
+    "name": "Musa",
+    "email": "mucerabdoo@gmail.com",
+    "phone": "+2348032569854"
+  },
+  "listingType": "sale",
+  "status": "approved",
+  "ownerId": "69190a7e0f4bc3506a2c94b1",
+  "approvedAt": "2025-11-26T22:21:31.348Z",
+  "approvedBy": "69190a7e0f4bc3506a2c94b1",
+  "rejectionReason": null,
+  "type": "residential",
+  "verified": true
+}
+    

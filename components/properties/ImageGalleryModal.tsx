@@ -9,10 +9,10 @@ import {
   useWindowDimensions, // Import hook
   FlatList,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ImageGalleryModalProps {
@@ -61,7 +61,7 @@ const ImageGalleryModal: React.FC<ImageGalleryModalProps> = ({
     >
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        
+
         {/* Close Button */}
         <SafeAreaView style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>

@@ -8,9 +8,10 @@ interface UsePropertiesOptions {
     propertyType?: string;
     minPrice?: number;
     maxPrice?: number;
-    bedrooms?: number;
-    bathrooms?: number;
+    beds?: number;
+    baths?: number;
     location?: string;
+    category?: string;
 }
 
 interface UsePropertiesResult {
@@ -45,15 +46,12 @@ export const useProperties = (options: UsePropertiesOptions = {}): UseProperties
             if (options.propertyType) params.propertyType = options.propertyType;
             if (options.minPrice) params.minPrice = options.minPrice;
             if (options.maxPrice) params.maxPrice = options.maxPrice;
-            if (options.bedrooms) params.bedrooms = options.bedrooms;
-            if (options.bathrooms) params.bathrooms = options.bathrooms;
+            if (options.beds) params.beds = options.beds;
+            if (options.baths) params.baths = options.baths;
             if (options.location) params.location = options.location;
+            if (options.category) params.category = options.category;
 
             const response = await api.get('/properties', { params });
-
-            console.log('📍 Properties API request:', params);
-            console.log('✅ Properties response:', response.data);
-
             if (response.data.success) {
                 const newProperties = response.data.properties || [];
 
@@ -66,11 +64,13 @@ export const useProperties = (options: UsePropertiesOptions = {}): UseProperties
                 setHasMore(newProperties.length === (options.limit || 10));
             } else {
                 setError(response.data.message || 'Failed to fetch properties');
+                alert('Error: ' + (response.data.message || 'Failed to fetch properties'));
             }
         } catch (err: any) {
             console.error('❌ Failed to fetch properties:', err.message);
             console.error('❌ Error response:', err.response?.data);
-            setError(err.response?.data?.message || 'Failed to fetch properties');
+            setError(err.response?.data?.message || err.message || 'Failed to fetch properties');
+            alert('Network/API Error: ' + (err.response?.data?.message || err.message || 'Failed to fetch properties'));
         } finally {
             setLoading(false);
         }
@@ -86,9 +86,10 @@ export const useProperties = (options: UsePropertiesOptions = {}): UseProperties
         options.propertyType,
         options.minPrice,
         options.maxPrice,
-        options.bedrooms,
-        options.bathrooms,
+        options.beds,
+        options.baths,
         options.location,
+        options.category,
     ]);
 
     const loadMore = useCallback(() => {

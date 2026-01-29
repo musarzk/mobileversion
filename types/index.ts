@@ -20,23 +20,39 @@ export interface Property {
   title: string;
   description: string;
   price: number;
+  priceUsd?: number | null;
+  listingType: "sale" | "rent";
   location: string;
-  address: string;
-  bedrooms: number;
-  bathrooms: number;
-  // Legacy fields found in DB
+  address?: string;
+  type: "residential" | "commercial" | "land";
+  propertyType?: string;
   beds?: number;
+  bedrooms?: number;
   baths?: number;
-  priceUsd?: number;
-  sqft: number;
-  yearBuilt: number;
-  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse';
-  listingType: 'sale' | 'rent';
-  status: 'active' | 'pending' | 'sold';
+  bathrooms?: number;
+  sqft?: number;
+  yearBuilt?: number;
   images: string[];
-  agent: User;
-  verified: boolean;
-  createdAt: string;
+  ownerId: string;
+  agentId?: string;
+  status: "pending" | "approved" | "rejected" | "suspended" | "sold";
+  verified?: boolean;
+  approvedAt?: string | Date; // Allow string for JSON response
+  approvedBy?: string;
+  rejectionReason?: string;
+  amenities: string[];
+  contact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  views: number;
+  favorites: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  
+  // Legacy fields (optional support if needed, but schema is strict now)
+  agent?: User; // Keeping agent for compatibility with existing UI that uses property.agent
 }
 
 export interface ApiError {

@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 import { COLORS } from '../../constants/theme';
 
-const CATEGORIES = ['All', 'House', 'Villa', 'Apartments', 'Others'];
+const CATEGORIES = ['All', 'Apartment', 'Residential', 'Commercial', 'Land', 'Others'];
 
 interface CategoryListProps {
     selectedCategory: string;
